@@ -44,3 +44,11 @@ Here is a basic diagram of how the 5 services will work:
     - so run on a high port of your choosing (I choose 5001), container listens on 80
     - on backend network
     - 1 replica
+
+docker network create -d overlay frontend
+docker network create -d overlay backend
+docker service create --name vote --network frontend -p 80:80 --replicas 2 dockersamples/examplevotingapp_vote:before
+docker service create --name redis --network frontend --replicas 1 redis:3.2
+docker service create --name worker --network backend --network frontend dockersamples/examplevotingapp_worker
+docker service create --name db --mount type=volume,source=psql,target=/var/lib/postgressql/data -e POSTGRES_PASSWORD=mypass --network backend --replicas 1 postgres:9.4
+docker service create --name result -p 5001:80 --network backend --replicas 1 dockersamples/examplevotingapp_result:before
